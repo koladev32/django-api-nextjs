@@ -1,95 +1,72 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+
+async function getData() {
+  const res = await fetch("http://127.0.0.1:8000/api/menu/");
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch data");
+  }
+
+  return res.json();
+}
+
+const MenuItem = ({ id, name, price, onEdit, onDelete }) => {
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+    <div className="menu-item" data-id={id}>
+      <div className="menu-item-info">
+        <div className="menu-item-name">{name}</div>
+        <div className="menu-item-price">${price.toFixed(2)}</div>
       </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
+      <div className="menu-item-actions">
+        <button className="edit-button" onClick={() => onEdit(id)}>
+          Edit
+        </button>
+        <button className="delete-button" onClick={() => onDelete(id)}>
+          Delete
+        </button>
       </div>
+    </div>
+  );
+};
+export default function Page() {
+  const [menuItems, setMenuItems] = useState(null);
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+  useEffect(
+    () => async () => {
+      const data = await getData();
+      if (data) {
+        setMenuItems(data);
+      }
+    },
+    []
+  );
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
+  const handleDelete = (id) => {
+    // Logic to delete the menu item
+    console.log("Delete item with id:", id);
+    setMenuItems((items) => items.filter((item) => item.id !== id));
+  };
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
+  console.log(menuItems);
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+  return (
+    <main className="menu-container">
+      {!!menuItems ? (
+        menuItems.map((item) => (
+          <MenuItem
+            key={item.id}
+            id={item.id}
+            name={item.name}
+            price={item.price}
+            onEdit={undefined}
+            onDelete={handleDelete}
+          />
+        ))
+      ) : (
+        <p>Loading</p>
+      )}
     </main>
-  )
+  );
 }

@@ -1,0 +1,57 @@
+.menu-container {
+  max-width: 70%;
+  height: 90vh;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.menu-item {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+}
+
+.menu-item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-item-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.menu-item-price {
+  color: #555;
+}
+
+.menu-item-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.menu-item button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-button {
+  background-color: #ffca28;
+  color: #333;
+}
+
+.delete-button {
+  background-color: #f44336;
+  color: #fff;
+}

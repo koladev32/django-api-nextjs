@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 async function getData() {
   const res = await fetch("http://127.0.0.1:8000/api/menu/");
@@ -32,6 +33,13 @@ const MenuItem = ({ id, name, price, onEdit, onDelete }) => {
 };
 export default function Page() {
   const [menuItems, setMenuItems] = useState(null);
+  const router = useRouter();
+  const params = useSearchParams();
+
+  const [displaySuccessMessage, setDisplaySuccessMessage] = useState({
+    show: false,
+    type: "", // either add or edit
+  });
 
   useEffect(
     () => async () => {
@@ -40,8 +48,30 @@ export default function Page() {
         setMenuItems(data);
       }
     },
-    []
+    [],
   );
+
+  useEffect(() => {
+    if (!!params.get("action")) {
+      setDisplaySuccessMessage({
+        type: "add",
+        show: true,
+      });
+      router.replace("/");
+    }
+  }, [params, router]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (displaySuccessMessage.show) {
+        setDisplaySuccessMessage({
+          show: false,
+          type: "",
+        });
+      }
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [displaySuccessMessage.show]);
 
   const handleDelete = (id) => {
     // Logic to delete the menu item
@@ -49,10 +79,16 @@ export default function Page() {
     setMenuItems((items) => items.filter((item) => item.id !== id));
   };
 
-  console.log(menuItems);
-
   return (
-    <main className="menu-container">
+    <div>
+      <button className="add-button" onClick={() => router.push("/add")}>
+        Add
+      </button>
+      {displaySuccessMessage.show && (
+        <p className="success-message">
+          {displaySuccessMessage.type === "add" ? "Added a" : "Modified a"} menu
+        </p>
+      )}
       {!!menuItems ? (
         menuItems.map((item) => (
           <MenuItem
@@ -67,6 +103,6 @@ export default function Page() {
       ) : (
         <p>Loading</p>
       )}
-    </main>
+    </div>
   );
 }

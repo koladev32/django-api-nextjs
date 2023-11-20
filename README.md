@@ -9,6 +9,7 @@ First launch the API server.
 
 ```bash
 cd django-api-nextjs
+python3.11 -m venv venv
 pip install -r requirements.txt
 
 python manage.py migrate

@@ -1,5 +1,21 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
+
+/**
+ * Fetches a menu item by ID.
+ * @param {number} id The ID of the menu item to retrieve.
+ */
+async function deleteMenu(id) {
+  const res = await fetch(`http://127.0.0.1:8000/api/menu/${id}/`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    throw new Error("Failed to retrieve menu");
+  }
+  return res.json();
+}
 
 /**
  * Fetches menu data from the server.
@@ -26,7 +42,12 @@ const MenuItem = ({ id, name, price, onEdit, onDelete }) => {
         <button className="edit-button" onClick={onEdit}>
           Edit
         </button>
-        <button className="delete-button" onClick={() => onDelete(id)}>
+        <button
+          className="delete-button"
+          onClick={() => {
+            deleteMenu(id).then(() => onDelete(id));
+          }}
+        >
           Delete
         </button>
       </div>

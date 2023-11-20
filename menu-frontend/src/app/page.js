@@ -14,7 +14,7 @@ async function deleteMenu(id) {
   if (!res.ok) {
     throw new Error("Failed to retrieve menu");
   }
-  return res.json();
+  return Promise.resolve();
 }
 
 /**

@@ -1,18 +1,20 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/router";
 
+/**
+ * Fetches menu data from the server.
+ */
 async function getData() {
   const res = await fetch("http://127.0.0.1:8000/api/menu/");
-
   if (!res.ok) {
     throw new Error("Failed to fetch data");
   }
-
   return res.json();
 }
 
+/**
+ * Represents a single menu item.
+ */
 const MenuItem = ({ id, name, price, onEdit, onDelete }) => {
   return (
     <div className="menu-item" data-id={id}>
@@ -21,7 +23,7 @@ const MenuItem = ({ id, name, price, onEdit, onDelete }) => {
         <div className="menu-item-price">${price.toFixed(2)}</div>
       </div>
       <div className="menu-item-actions">
-        <button className="edit-button" onClick={() => onEdit(id)}>
+        <button className="edit-button" onClick={onEdit}>
           Edit
         </button>
         <button className="delete-button" onClick={() => onDelete(id)}>
@@ -31,51 +33,54 @@ const MenuItem = ({ id, name, price, onEdit, onDelete }) => {
     </div>
   );
 };
+
+/**
+ * The main page component.
+ */
 export default function Page() {
   const [menuItems, setMenuItems] = useState(null);
   const router = useRouter();
-  const params = useSearchParams();
 
+  // State for displaying a success message
   const [displaySuccessMessage, setDisplaySuccessMessage] = useState({
     show: false,
-    type: "", // either add or edit
+    type: "", // either 'add' or 'update'
   });
 
-  useEffect(
-    () => async () => {
-      const data = await getData();
-      if (data) {
-        setMenuItems(data);
-      }
-    },
-    [],
-  );
-
+  // Fetch menu items on component mount
   useEffect(() => {
-    if (!!params.get("action")) {
+    const fetchData = async () => {
+      const data = await getData();
+      setMenuItems(data);
+    };
+    fetchData().catch(console.error);
+  }, []);
+
+  // Detect changes in URL parameters for success messages
+  useEffect(() => {
+    const action = new URLSearchParams(window.location.search).get("action");
+    if (action) {
       setDisplaySuccessMessage({
-        type: "add",
+        type: action,
         show: true,
       });
-      router.replace("/");
+      // Clear the URL parameter
+      router.replace(router.pathname);
     }
-  }, [params, router]);
+  }, [router]);
 
+  // Automatically hide the success message after 3 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
       if (displaySuccessMessage.show) {
-        setDisplaySuccessMessage({
-          show: false,
-          type: "",
-        });
+        setDisplaySuccessMessage({ show: false, type: "" });
       }
     }, 3000);
     return () => clearTimeout(timer);
   }, [displaySuccessMessage.show]);
 
+  // Handle deletion of a menu item
   const handleDelete = (id) => {
-    // Logic to delete the menu item
-    console.log("Delete item with id:", id);
     setMenuItems((items) => items.filter((item) => item.id !== id));
   };
 
@@ -87,21 +92,22 @@ export default function Page() {
       {displaySuccessMessage.show && (
         <p className="success-message">
           {displaySuccessMessage.type === "add" ? "Added a" : "Modified a"} menu
+          item.
         </p>
       )}
-      {!!menuItems ? (
+      {menuItems ? (
         menuItems.map((item) => (
           <MenuItem
             key={item.id}
             id={item.id}
             name={item.name}
             price={item.price}
-            onEdit={undefined}
+            onEdit={() => router.push(`/update/${item.id}`)}
             onDelete={handleDelete}
           />
         ))
       ) : (
-        <p>Loading</p>
+        <p>Loading...</p>
       )}
     </div>
   );

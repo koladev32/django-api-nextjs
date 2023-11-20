@@ -2,12 +2,25 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
 /**
- * Sends a POST request to create a new menu item.
- * @param {Object} data The menu item data to be sent.
+ * Fetches a menu item by ID.
+ * @param {number} id The ID of the menu item to retrieve.
  */
-async function createMenu(data) {
-  const res = await fetch("http://127.0.0.1:8000/api/menu/", {
-    method: "POST",
+async function getMenu(id) {
+  const res = await fetch(`http://127.0.0.1:8000/api/menu/${id}/`);
+  if (!res.ok) {
+    throw new Error("Failed to retrieve menu");
+  }
+  return res.json();
+}
+
+/**
+ * Updates a menu item by ID.
+ * @param {number} id The ID of the menu item to update.
+ * @param {Object} data The updated data for the menu item.
+ */
+async function updateMenu(id, data) {
+  const res = await fetch(`http://127.0.0.1:8000/api/menu/${id}/`, {
+    method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
@@ -15,29 +28,27 @@ async function createMenu(data) {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to create data");
+    throw new Error("Failed to update menu");
   }
-
   return res.json();
 }
 
-const Page = () => {
+const Page = ({ params }) => {
   const router = useRouter();
   const [formData, setFormData] = useState({ name: "", price: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   /**
-   * Handles the form submission.
+   * Handles form submission.
    * @param {Event} event The form submission event.
    */
   const onFinish = (event) => {
     event.preventDefault();
     setIsLoading(true);
-    createMenu(formData)
+    updateMenu(params.menuId, formData)
       .then(() => {
-        // Navigate to the main page with a query parameter indicating success
-        router.replace("/?action=add");
+        router.replace("/?action=update");
       })
       .catch(() => {
         setError("An error occurred");
@@ -50,6 +61,19 @@ const Page = () => {
     return () => setIsLoading(false);
   }, []);
 
+  // Fetch menu item data on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getMenu(params.menuId);
+        setFormData({ name: data.name, price: data.price });
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+    fetchData();
+  }, [params.menuId]);
+
   return (
     <form onSubmit={onFinish}>
       <div className="form-item">
@@ -58,9 +82,7 @@ const Page = () => {
           required
           name="name"
           value={formData.name}
-          onChange={(event) =>
-            setFormData({ ...formData, name: event.target.value })
-          }
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
         />
       </div>
       <div className="form-item">
@@ -70,9 +92,7 @@ const Page = () => {
           type="number"
           name="price"
           value={formData.price}
-          onChange={(event) =>
-            setFormData({ ...formData, price: event.target.value })
-          }
+          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
         />
       </div>
       {error && <p className="error-message">{error}</p>}

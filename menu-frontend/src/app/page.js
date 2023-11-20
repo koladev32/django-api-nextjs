@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 /**
  * Fetches a menu item by ID.
@@ -61,6 +61,7 @@ const MenuItem = ({ id, name, price, onEdit, onDelete }) => {
 export default function Page() {
   const [menuItems, setMenuItems] = useState(null);
   const router = useRouter();
+  const params = useSearchParams();
 
   // State for displaying a success message
   const [displaySuccessMessage, setDisplaySuccessMessage] = useState({
@@ -79,16 +80,14 @@ export default function Page() {
 
   // Detect changes in URL parameters for success messages
   useEffect(() => {
-    const action = new URLSearchParams(window.location.search).get("action");
-    if (action) {
+    if (!!params.get("action")) {
       setDisplaySuccessMessage({
-        type: action,
+        type: params.get("action"),
         show: true,
       });
-      // Clear the URL parameter
-      router.replace(router.pathname);
+      router.replace("/");
     }
-  }, [router]);
+  }, [params, router]);
 
   // Automatically hide the success message after 3 seconds
   useEffect(() => {
